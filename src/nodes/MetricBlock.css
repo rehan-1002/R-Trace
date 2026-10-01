@@ -1,0 +1,122 @@
+/*
+ * MetricBlock.css — Core single measurement primitive.
+ * Tabular numerals for sensor readings.
+ * DESIGN.md section 15 (Metric Block).
+ */
+
+.metric-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  min-height: 110px;
+  position: relative;
+  transition: border-color var(--transition-fast);
+}
+
+.metric-block--warning {
+  border-color: var(--color-state-warning);
+  background-color: hsl(38 60% 8% / 0.8);
+}
+
+.metric-block--critical {
+  border-color: var(--color-state-critical);
+  background-color: hsl(4 50% 8% / 0.8);
+}
+
+.metric-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.metric-block__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.metric-block__freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.metric-block__freshness-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.metric-block__freshness--live {
+  color: var(--color-state-normal);
+}
+.metric-block__freshness--live .metric-block__freshness-dot {
+  background-color: var(--color-state-normal);
+}
+
+.metric-block__freshness--delayed {
+  color: var(--color-state-warning);
+}
+.metric-block__freshness--delayed .metric-block__freshness-dot {
+  background-color: var(--color-state-warning);
+}
+
+.metric-block__freshness--stale {
+  color: var(--color-state-stale);
+}
+.metric-block__freshness--stale .metric-block__freshness-dot {
+  background-color: var(--color-state-stale);
+}
+
+.metric-block__freshness--unknown {
+  color: var(--color-state-unknown);
+}
+.metric-block__freshness--unknown .metric-block__freshness-dot {
+  background-color: var(--color-state-unknown);
+}
+
+.metric-block__value-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.metric-block__value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-base);
+  font-feature-settings: var(--font-feature-tnum);
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.metric-block__unit {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.metric-block__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.metric-block__timestamp {
+  font-family: var(--font-family-mono);
+  font-feature-settings: var(--font-feature-tnum);
+}

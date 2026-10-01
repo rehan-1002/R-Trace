@@ -1,0 +1,23 @@
+/*
+ * ContextPanel.css — Right context panel styles.
+ */
+
+.context-panel {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.context-panel__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-6);
+}
+
+.context-panel__empty-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: var(--line-height-loose);
+}

@@ -1,0 +1,79 @@
+/*
+ * NavRail.css — Navigation rail styles.
+ * Vertical list on desktop, horizontal bar on mobile.
+ * DESIGN.md: use typography, not icons-only.
+ */
+
+.nav-rail {
+  padding: var(--space-3) 0;
+  height: 100%;
+}
+
+.nav-rail__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.nav-rail__item {
+  display: block;
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  border-left: 2px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.nav-rail__item:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-overlay);
+}
+
+.nav-rail__item--active {
+  color: var(--color-accent);
+  border-left-color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+}
+
+.nav-rail__item--active:hover {
+  color: var(--color-accent);
+}
+
+/* =====================================================
+ * Mobile — horizontal scrolling bar
+ * ===================================================== */
+@media (max-width: 680px) {
+  .nav-rail {
+    padding: 0;
+    height: auto;
+  }
+
+  .nav-rail__list {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0;
+    padding: 0 var(--space-2);
+    /* Hide scrollbar on mobile — still scrollable */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .nav-rail__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-rail__item {
+    padding: var(--space-3) var(--space-4);
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .nav-rail__item--active {
+    border-left: none;
+    border-bottom-color: var(--color-accent);
+    background-color: transparent;
+  }
+}

@@ -1,0 +1,78 @@
+/*
+ * StatusStrip.css — Connection state strip below the header.
+ */
+
+.status-strip {
+  display: flex;
+  align-items: center;
+  height: var(--status-strip-height);
+  padding: 0 var(--space-5);
+  background-color: var(--color-surface-base);
+}
+
+.status-strip__items {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+/* Demo mode badge — explicit, unmissable */
+.status-strip__demo-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-widest);
+  color: var(--color-state-warning);
+  background-color: var(--color-state-warning-bg);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-state-warning);
+}
+
+/* Individual status dot */
+.status-dot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.status-dot__indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot__label {
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.status-dot__time {
+  color: var(--color-text-muted);
+  margin-left: var(--space-1);
+}
+
+/* State colors */
+.status-dot--connected .status-dot__indicator {
+  background-color: var(--color-state-normal);
+}
+
+.status-dot--connected .status-dot__label {
+  color: var(--color-state-normal);
+}
+
+.status-dot--disconnected .status-dot__indicator {
+  background-color: var(--color-state-offline);
+}
+
+.status-dot--disconnected .status-dot__label {
+  color: var(--color-state-offline);
+}
+
+.status-dot--unknown .status-dot__indicator {
+  background-color: var(--color-state-unknown);
+}

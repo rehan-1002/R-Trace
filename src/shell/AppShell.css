@@ -1,0 +1,108 @@
+/*
+ * AppShell.css — Application shell layout.
+ * Three-region desktop layout as specified in DESIGN.md section 6:
+ *   Navigation Rail | Main Workspace | Context Panel
+ */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--nav-rail-width) 1fr var(--context-panel-width);
+  grid-template-rows: var(--header-height) var(--status-strip-height) 1fr;
+  grid-template-areas:
+    "header header header"
+    "status status status"
+    "nav    main   context";
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--color-surface-base);
+}
+
+/* =====================================================
+ * Header row — full width
+ * ===================================================== */
+.app-shell__header {
+  grid-area: header;
+  z-index: var(--z-header);
+  border-bottom: 1px solid var(--color-surface-border);
+}
+
+/* =====================================================
+ * Status strip — full width, below header
+ * ===================================================== */
+.app-shell__status {
+  grid-area: status;
+  z-index: calc(var(--z-header) - 1);
+  border-bottom: 1px solid var(--color-surface-border);
+}
+
+/* =====================================================
+ * Navigation rail — left column
+ * ===================================================== */
+.app-shell__nav {
+  grid-area: nav;
+  overflow-y: auto;
+  border-right: 1px solid var(--color-surface-border);
+  background-color: var(--color-surface-raised);
+}
+
+/* =====================================================
+ * Main workspace — center column
+ * ===================================================== */
+.app-shell__main {
+  grid-area: main;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* =====================================================
+ * Context panel — right column
+ * ===================================================== */
+.app-shell__context {
+  grid-area: context;
+  overflow-y: auto;
+  border-left: 1px solid var(--color-surface-border);
+  background-color: var(--color-surface-raised);
+}
+
+/* =====================================================
+ * Responsive — tablet (collapse context panel)
+ * ===================================================== */
+@media (max-width: 1100px) {
+  .app-shell {
+    grid-template-columns: var(--nav-rail-width) 1fr;
+    grid-template-areas:
+      "header header"
+      "status status"
+      "nav    main";
+  }
+
+  .app-shell__context {
+    display: none;
+  }
+}
+
+/* =====================================================
+ * Responsive — mobile (bottom nav)
+ * ===================================================== */
+@media (max-width: 680px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--header-height) var(--status-strip-height) 1fr auto;
+    grid-template-areas:
+      "header"
+      "status"
+      "main"
+      "nav";
+  }
+
+  .app-shell__nav {
+    border-right: none;
+    border-top: 1px solid var(--color-surface-border);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .app-shell__context {
+    display: none;
+  }
+}

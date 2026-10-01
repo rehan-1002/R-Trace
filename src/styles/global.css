@@ -1,0 +1,64 @@
+/*
+ * global.css — Global stylesheet entry point.
+ * Imports tokens, reset, and typography in the correct order.
+ * Only this file is imported by main.tsx.
+ */
+
+@import './tokens.css';
+@import './reset.css';
+@import './typography.css';
+
+/* =========================================================
+ * Root application container
+ * ========================================================= */
+#root {
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================================
+ * Scrollbar styling — restrained, not decorative
+ * ========================================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-border);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* =========================================================
+ * Utility classes — keep minimal, only what's genuinely shared
+ * ========================================================= */
+
+/* Screen-reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Truncate long text with ellipsis */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

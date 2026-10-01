@@ -1,0 +1,261 @@
+/*
+ * LoginPage.css — Login page styles.
+ * Two-region layout: form panel + context strip.
+ * Restrained, not decorative. No gradients behind the form.
+ */
+
+.login-page {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  min-height: 100dvh;
+  background-color: var(--color-surface-base);
+}
+
+/* =====================================================
+ * Left panel — the sign-in form
+ * ===================================================== */
+.login-panel {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-10) var(--space-8);
+  background-color: var(--color-surface-raised);
+  border-right: 1px solid var(--color-surface-border);
+}
+
+.login-header {
+  margin-bottom: var(--space-10);
+}
+
+.login-wordmark {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.login-wordmark-rtrace {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-tight);
+  color: var(--color-text-primary);
+}
+
+.login-wordmark-sub {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-muted);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+/* =====================================================
+ * Form
+ * ===================================================== */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.login-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.login-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.login-input {
+  height: 40px;
+  padding: 0 var(--space-3);
+  background-color: var(--color-surface-overlay);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast);
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.login-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-error {
+  padding: var(--space-3);
+  background-color: var(--color-state-critical-bg);
+  border: 1px solid var(--color-state-critical);
+  border-radius: var(--radius-md);
+  color: var(--color-state-critical);
+  font-size: var(--font-size-sm);
+}
+
+.login-btn-primary {
+  height: 40px;
+  padding: 0 var(--space-5);
+  background-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  transition: opacity var(--transition-fast);
+  margin-top: var(--space-2);
+}
+
+.login-btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.login-btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+ * Divider and guest section
+ * ===================================================== */
+.login-divider {
+  height: 1px;
+  background-color: var(--color-surface-border);
+  margin: var(--space-6) 0;
+}
+
+.login-demo-roles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  background-color: var(--color-surface-overlay);
+  border: 1px dashed var(--color-surface-border);
+  border-radius: var(--radius-md);
+}
+
+.login-demo-title {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.login-demo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+.login-btn-demo {
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.login-btn-demo:hover {
+  background-color: var(--color-surface-overlay);
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.login-guest-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.login-guest-note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-loose);
+}
+
+.login-btn-guest {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+  width: fit-content;
+}
+
+.login-btn-guest:hover {
+  border-color: var(--color-text-muted);
+  color: var(--color-text-primary);
+}
+
+/* =====================================================
+ * Right context strip
+ * ===================================================== */
+.login-context {
+  display: flex;
+  align-items: flex-end;
+  padding: var(--space-8);
+  background-color: var(--color-surface-base);
+}
+
+.login-context-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.login-context-label {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  max-width: 320px;
+  line-height: var(--line-height-tight);
+}
+
+.login-node-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-state-normal);
+}
+
+.login-node-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-state-normal);
+  flex-shrink: 0;
+}
+
+/* =====================================================
+ * Responsive — mobile
+ * ===================================================== */
+@media (max-width: 640px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .login-panel {
+    padding: var(--space-8) var(--space-5);
+    border-right: none;
+    border-bottom: 1px solid var(--color-surface-border);
+  }
+
+  .login-context {
+    display: none;
+  }
+}

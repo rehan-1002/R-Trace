@@ -1,0 +1,97 @@
+/*
+ * NodeIdentityBlock.css — Header identity block for node views.
+ */
+
+.node-identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-surface-raised);
+  border-bottom: 1px solid var(--color-surface-border);
+}
+
+.node-identity__main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.node-identity__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.node-identity__type-badge {
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.node-identity__type-badge--fire {
+  background-color: hsl(18 90% 12%);
+  color: var(--color-node-fire);
+  border: 1px solid hsl(18 90% 25%);
+}
+
+.node-identity__type-badge--flood {
+  background-color: hsl(210 75% 12%);
+  color: var(--color-node-flood);
+  border: 1px solid hsl(210 75% 25%);
+}
+
+.node-identity__type-badge--aqi {
+  background-color: hsl(140 55% 12%);
+  color: var(--color-node-aqi);
+  border: 1px solid hsl(140 55% 25%);
+}
+
+.node-identity__type-badge--landslide {
+  background-color: hsl(32 70% 12%);
+  color: var(--color-node-landslide);
+  border: 1px solid hsl(32 70% 25%);
+}
+
+.node-identity__type-badge--industrial {
+  background-color: hsl(260 45% 14%);
+  color: var(--color-node-industrial);
+  border: 1px solid hsl(260 45% 28%);
+}
+
+.node-identity__id {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.node-identity__label {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.node-identity__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.node-identity__meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.node-identity__coords {
+  font-family: var(--font-family-mono);
+  font-feature-settings: var(--font-feature-tnum);
+}

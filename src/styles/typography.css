@@ -1,0 +1,29 @@
+/*
+ * typography.css — Base typography setup.
+ * Imports Inter from Google Fonts and sets base type scale.
+ * DESIGN.md section 5.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
+
+/* Base body typography */
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-base);
+}
+
+/* Numeric values in metric displays use tabular figures */
+.numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: var(--font-feature-tnum);
+}
+
+/* Monospace for node IDs, timestamps, technical values */
+.mono {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9em;
+}

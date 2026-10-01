@@ -1,0 +1,78 @@
+/*
+ * NodeHealthBadge.css — Health state indicator styles.
+ * Uses semantic tokens from tokens.css.
+ * DESIGN.md section 9.
+ */
+
+.node-health-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.node-health-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.node-health-badge--normal {
+  background-color: var(--color-state-normal-bg);
+  color: var(--color-state-normal);
+  border: 1px solid var(--color-state-normal);
+}
+.node-health-badge--normal .node-health-badge__dot {
+  background-color: var(--color-state-normal);
+}
+
+.node-health-badge--warning {
+  background-color: var(--color-state-warning-bg);
+  color: var(--color-state-warning);
+  border: 1px solid var(--color-state-warning);
+}
+.node-health-badge--warning .node-health-badge__dot {
+  background-color: var(--color-state-warning);
+}
+
+.node-health-badge--critical {
+  background-color: var(--color-state-critical-bg);
+  color: var(--color-state-critical);
+  border: 1px solid var(--color-state-critical);
+}
+.node-health-badge--critical .node-health-badge__dot {
+  background-color: var(--color-state-critical);
+}
+
+.node-health-badge--offline {
+  background-color: var(--color-state-offline-bg);
+  color: var(--color-state-offline);
+  border: 1px solid var(--color-state-offline);
+}
+.node-health-badge--offline .node-health-badge__dot {
+  background-color: var(--color-state-offline);
+}
+
+.node-health-badge--stale {
+  background-color: var(--color-state-stale-bg);
+  color: var(--color-state-stale);
+  border: 1px solid var(--color-state-stale);
+}
+.node-health-badge--stale .node-health-badge__dot {
+  background-color: var(--color-state-stale);
+}
+
+.node-health-badge--unknown {
+  background-color: var(--color-state-unknown-bg);
+  color: var(--color-state-unknown);
+  border: 1px solid var(--color-state-unknown);
+}
+.node-health-badge--unknown .node-health-badge__dot {
+  background-color: var(--color-state-unknown);
+}
