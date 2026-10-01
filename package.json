@@ -11,12 +11,14 @@
     "server": "node server/index.js"
   },
   "dependencies": {
+    "@serialport/parser-readline": "^13.0.0",
     "@tanstack/react-query": "^5.104.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.6",
+    "serialport": "^13.0.0",
     "ws": "^8.22.0",
     "zustand": "^5.0.15"
   },

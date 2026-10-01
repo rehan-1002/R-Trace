@@ -396,3 +396,85 @@ server.listen(PORT, () => {
   console.log(`   - Database File: ${DB_PATH}`);
   console.log('=====================================================');
 });
+
+// ============================================================================
+// 6. Offline USB Serial Bridge (Auto-detects ESP32 on USB COM Port)
+// ============================================================================
+let activeSerialPort = null;
+
+async function checkAndConnectSerial() {
+  if (activeSerialPort && activeSerialPort.isOpen) return;
+
+  try {
+    const { SerialPort } = await import('serialport');
+    const { ReadlineParser } = await import('@serialport/parser-readline');
+    const ports = await SerialPort.list();
+
+    // Look for USB serial devices
+    const espPort = ports.find((p) =>
+      p.path &&
+      (p.manufacturer?.includes('Silicon Labs') ||
+       p.manufacturer?.includes('WCH') ||
+       p.manufacturer?.includes('FTDI') ||
+       p.vendorId ||
+       p.path.startsWith('COM'))
+    ) || ports[0];
+
+    if (!espPort) return;
+
+    activeSerialPort = new SerialPort({
+      path: espPort.path,
+      baudRate: 115200,
+      autoOpen: true,
+    });
+
+    const parser = activeSerialPort.pipe(new ReadlineParser({ delimiter: '\n' }));
+
+    parser.on('data', (line) => {
+      const cleanLine = line.trim();
+      if (!cleanLine.startsWith('{') || !cleanLine.endsWith('}')) return;
+      try {
+        const data = JSON.parse(cleanLine);
+        if (data.metric && typeof data.value === 'number') {
+          const reading = {
+            type: 'SENSOR_READING',
+            nodeId: data.nodeId || 'FN-001',
+            nodeType: data.nodeType || 'FIRE',
+            metric: data.metric,
+            value: data.value,
+            unit: data.unit || '',
+            timestamp: new Date().toISOString(),
+            timestampSource: 'edge',
+          };
+          console.log(`[USB Serial] ${reading.nodeId} -> ${reading.metric}: ${reading.value} ${reading.unit}`);
+          ingestAndBroadcast(reading);
+        }
+      } catch {
+        // Ignored non-json debug lines
+      }
+    });
+
+    activeSerialPort.on('open', () => {
+      console.log(`🔌 [USB Serial] Connected to ESP32 on ${espPort.path} (115200 baud)`);
+    });
+
+    activeSerialPort.on('close', () => {
+      console.log('🔌 [USB Serial] ESP32 disconnected.');
+      activeSerialPort = null;
+    });
+
+    activeSerialPort.on('error', (err) => {
+      if (!err.message.includes('Access is denied') && !err.message.includes('busy')) {
+        console.warn('🔌 [USB Serial Info]', err.message);
+      }
+      activeSerialPort = null;
+    });
+  } catch {
+    // Serialport scan handled
+  }
+}
+
+// Auto-scan for USB plug-in every 4 seconds
+setInterval(checkAndConnectSerial, 4000);
+checkAndConnectSerial();
+
