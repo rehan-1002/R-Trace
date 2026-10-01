@@ -38,9 +38,9 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          VITE_DATA_MODE: mock
-          VITE_API_URL: http://localhost:3001
-          VITE_WS_URL: ws://localhost:3001/ws
+          VITE_DATA_MODE: live
+          VITE_API_URL: https://r-trace.onrender.com
+          VITE_WS_URL: wss://r-trace.onrender.com/ws
           VITE_MAP_TILE_URL: https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
           VITE_APP_VERSION: 0.1.0
 

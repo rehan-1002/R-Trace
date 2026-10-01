@@ -156,6 +156,29 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Root Dashboard & Health
+app.get('/', (req, res) => {
+  const nodeCount = db.prepare('SELECT COUNT(*) as count FROM nodes').get().count;
+  const readingCount = db.prepare('SELECT COUNT(*) as count FROM readings').get().count;
+  res.json({
+    service: 'R-TRACE Disaster Intelligence Backend',
+    status: 'ONLINE',
+    database: 'SQLite (WAL Mode Active)',
+    registeredNodes: `${nodeCount} Mumbai locations active`,
+    readingsStored: readingCount,
+    uptimeSeconds: Math.round(process.uptime()),
+    endpoints: {
+      health: 'GET /health',
+      nodes: 'GET /api/nodes',
+      nodeDetail: 'GET /api/nodes/:nodeId',
+      telemetryHistory: 'GET /api/nodes/:nodeId/history?metric=temperature',
+      ingestTelemetry: 'POST /api/nodes/:nodeId/telemetry',
+      login: 'POST /api/auth/login',
+      websocket: 'wss://r-trace.onrender.com/ws'
+    }
+  });
+});
+
 // Health Check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), db: 'sqlite' });
