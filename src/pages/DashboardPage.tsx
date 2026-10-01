@@ -75,7 +75,7 @@ export function DashboardPage() {
           <KpiCard label="Primary Demonstrator" value="FN-001" subtext="Wildfire IR & Smoke" state="warning" />
         </section>
 
-        {/* Featured Demonstration: Pine Ridge Wildfire Sentinel */}
+        {/* Featured Demonstration: Sanjay Gandhi National Park Wildfire Sentinel */}
         <section
           style={{
             padding: 'var(--space-5)',
@@ -105,11 +105,11 @@ export function DashboardPage() {
                   Featured Demonstrator
                 </span>
                 <h2 style={{ fontSize: 'var(--font-size-lg)', color: 'var(--color-text-primary)' }}>
-                  Pine Ridge Sector 4 (FN-001)
+                  Sanjay Gandhi National Park (FN-001)
                 </h2>
               </div>
               <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                Active wildfire telemetry array: Ambient thermal curve & combustion gas density
+                Active wildfire sentinel: Borivali East canopy thermal curve & combustion gas telemetry (Mumbai Sector 1)
               </p>
             </div>
             <Link

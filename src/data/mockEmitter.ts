@@ -2,7 +2,7 @@
  * mockEmitter.ts — Timer-based mock sensor reading emitter.
  * Emits SensorReadingEvent matching the normalized contract from FRD.md section 5.2.
  * Used when VITE_DATA_MODE='mock'.
- * Simulates real sensor physics with bounded drift and occasional spikes.
+ * Simulates real sensor physics with bounded drift and occasional spikes across all Mumbai nodes.
  */
 
 import type { SensorReadingEvent, NodeType } from '@/types';
@@ -18,34 +18,43 @@ interface NodeMetricState {
   step: number;
 }
 
+function getInitialNodeMetrics(nodeType: NodeType): Record<string, NodeMetricState> {
+  switch (nodeType) {
+    case 'FIRE':
+      return {
+        temperature: { value: 36.5 + Math.random() * 4, unit: '°C', min: 20, max: 85, step: 0.4 },
+        smoke: { value: 120.0 + Math.random() * 30, unit: 'ppm', min: 20, max: 600, step: 4.0 },
+        humidity: { value: 28.0 + Math.random() * 6, unit: '% RH', min: 10, max: 90, step: 0.3 },
+      };
+    case 'FLOOD':
+      return {
+        waterLevel: { value: 1.45 + Math.random() * 0.3, unit: 'm', min: 0.2, max: 4.5, step: 0.03 },
+        flowRate: { value: 4.2 + Math.random() * 0.8, unit: 'm³/s', min: 0.5, max: 12.0, step: 0.1 },
+        rainfall: { value: 12.0 + Math.random() * 8, unit: 'mm/h', min: 0, max: 80, step: 0.5 },
+      };
+    case 'AQI':
+      return {
+        pm25: { value: 42.0 + Math.random() * 10, unit: 'µg/m³', min: 5, max: 300, step: 2.0 },
+        pm10: { value: 68.0 + Math.random() * 15, unit: 'µg/m³', min: 10, max: 400, step: 3.0 },
+        aqi: { value: 88.0 + Math.random() * 16, unit: 'AQI', min: 15, max: 350, step: 2.0 },
+      };
+    case 'LANDSLIDE':
+      return {
+        soilMoisture: { value: 60.0 + Math.random() * 8, unit: '%', min: 10, max: 95, step: 0.5 },
+        tiltAngle: { value: 13.5 + Math.random() * 2, unit: '°', min: 0, max: 45, step: 0.05 },
+        vibration: { value: 0.12 + Math.random() * 0.04, unit: 'g', min: 0, max: 2.5, step: 0.02 },
+      };
+    case 'INDUSTRIAL':
+      return {
+        voc: { value: 80.0 + Math.random() * 15, unit: 'ppb', min: 10, max: 800, step: 3.0 },
+        combustibleGas: { value: 16.0 + Math.random() * 5, unit: '% LEL', min: 0, max: 100, step: 0.8 },
+        ambientTemp: { value: 31.0 + Math.random() * 3, unit: '°C', min: 15, max: 55, step: 0.2 },
+      };
+  }
+}
+
 // Running physical state per node and metric
-const runningState: Record<string, Record<string, NodeMetricState>> = {
-  'FN-001': {
-    temperature: { value: 39.2, unit: '°C', min: 20, max: 85, step: 0.4 },
-    smoke: { value: 145.0, unit: 'ppm', min: 20, max: 600, step: 4.0 },
-    humidity: { value: 26.5, unit: '% RH', min: 10, max: 90, step: 0.3 },
-  },
-  'FL-001': {
-    waterLevel: { value: 1.52, unit: 'm', min: 0.2, max: 4.5, step: 0.03 },
-    flowRate: { value: 4.4, unit: 'm³/s', min: 0.5, max: 12.0, step: 0.1 },
-    rainfall: { value: 12.0, unit: 'mm/h', min: 0, max: 80, step: 0.5 },
-  },
-  'AQ-001': {
-    pm25: { value: 45.0, unit: 'µg/m³', min: 5, max: 300, step: 2.0 },
-    pm10: { value: 68.0, unit: 'µg/m³', min: 10, max: 400, step: 3.0 },
-    aqi: { value: 92.0, unit: 'AQI', min: 15, max: 350, step: 2.0 },
-  },
-  'LS-001': {
-    soilMoisture: { value: 62.0, unit: '%', min: 10, max: 95, step: 0.5 },
-    tiltAngle: { value: 14.2, unit: '°', min: 0, max: 45, step: 0.05 },
-    vibration: { value: 0.12, unit: 'g', min: 0, max: 2.5, step: 0.02 },
-  },
-  'IN-001': {
-    voc: { value: 85.0, unit: 'ppb', min: 10, max: 800, step: 3.0 },
-    combustibleGas: { value: 18.0, unit: '% LEL', min: 0, max: 100, step: 0.8 },
-    ambientTemp: { value: 31.0, unit: '°C', min: 15, max: 55, step: 0.2 },
-  },
-};
+const runningState: Record<string, Record<string, NodeMetricState>> = {};
 
 class MockEventEmitter {
   private subscribers: Map<string, Set<SensorCallback>> = new Map();
@@ -95,6 +104,10 @@ class MockEventEmitter {
 
       const nodeDef = MOCK_NODES.find((n) => n.id === nodeId);
       const nodeType: NodeType = nodeDef?.type ?? 'FIRE';
+
+      if (!runningState[nodeId]) {
+        runningState[nodeId] = getInitialNodeMetrics(nodeType);
+      }
       const nodeMetrics = runningState[nodeId];
 
       if (!nodeMetrics) continue;

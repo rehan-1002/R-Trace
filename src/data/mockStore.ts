@@ -1,6 +1,6 @@
 /**
  * mockStore.ts — Static mock data and history store.
- * Generates realistic initial telemetry history and node statuses.
+ * Generates realistic initial telemetry history and node statuses for Mumbai deployments.
  * RULES.md: Mock data is strictly partitioned and tagged.
  */
 
@@ -28,7 +28,7 @@ export function getMockNodeStatus(nodeId: string): NodeStatus {
 
 /**
  * Generates realistic historical points for initial chart loading.
- * Values follow a smooth baseline with realistic physical bounds.
+ * Values follow a smooth baseline with realistic physical bounds for all hazard types.
  */
 export function generateMockHistory(
   nodeId: string,
@@ -59,14 +59,42 @@ export function generateMockHistory(
     } else if (metric === 'flowRate') {
       baseValue = 4.2;
       jitter = 0.3;
+    } else if (metric === 'rainfall') {
+      baseValue = 12.0;
+      jitter = 1.2;
     }
   } else if (nodeId.startsWith('AQ')) {
     if (metric === 'pm25') {
       baseValue = 42.0;
       jitter = 3.0;
+    } else if (metric === 'pm10') {
+      baseValue = 68.0;
+      jitter = 4.5;
     } else if (metric === 'aqi') {
       baseValue = 88.0;
       jitter = 4.0;
+    }
+  } else if (nodeId.startsWith('LS')) {
+    if (metric === 'soilMoisture') {
+      baseValue = 62.0;
+      jitter = 1.2;
+    } else if (metric === 'tiltAngle') {
+      baseValue = 14.2;
+      jitter = 0.15;
+    } else if (metric === 'vibration') {
+      baseValue = 0.12;
+      jitter = 0.02;
+    }
+  } else if (nodeId.startsWith('IN')) {
+    if (metric === 'voc') {
+      baseValue = 85.0;
+      jitter = 4.0;
+    } else if (metric === 'combustibleGas') {
+      baseValue = 18.0;
+      jitter = 1.0;
+    } else if (metric === 'ambientTemp') {
+      baseValue = 31.0;
+      jitter = 0.5;
     }
   }
 
