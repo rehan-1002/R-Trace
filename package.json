@@ -7,19 +7,26 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "server": "node server/index.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.6",
+    "ws": "^8.22.0",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^26.6.3",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
+    "@types/ws": "^8.18.2",
     "@vitejs/plugin-react": "^4.7.0",
     "typescript": "^5.9.3",
     "vite": "^6.4.3"

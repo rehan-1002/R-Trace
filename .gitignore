@@ -35,3 +35,9 @@ pnpm-debug.log*
 
 # Vite cache
 .vite/
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
