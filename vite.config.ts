@@ -11,6 +11,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true, // Listen on all network addresses (0.0.0.0) so other laptops can connect
     port: 5173,
     strictPort: false,
   },

@@ -12,21 +12,97 @@ import { dataSource } from '@/data/dataSource';
 import type { NodeDefinition } from '@/types';
 import { NodeSelector } from '@/nodes/NodeSelector';
 import { LiveChart } from '@/charts/LiveChart';
+import { getWsUrl } from '@/utils/network';
 import './Page.css';
+
+function getRealLocationLabel(lat?: number, lng?: number, fallbackLabel?: string): string {
+  if (lat && lng) {
+    if (lat >= 19.15 && lat <= 19.26 && lng >= 73.08 && lng <= 73.25) {
+      return 'Dombivli / Kalyan (Thane), Maharashtra';
+    }
+    if (lat >= 18.90 && lat <= 19.35 && lng >= 72.75 && lng <= 73.35) {
+      return 'Mumbai Metropolitan Region, Maharashtra';
+    }
+    return `${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
+  }
+  return fallbackLabel || 'Dombivli / Kalyan (Thane), Maharashtra';
+}
 
 export function DashboardPage() {
   const { user } = useAuth();
   const [nodes, setNodes] = useState<NodeDefinition[]>([]);
+  const [placeLabel, setPlaceLabel] = useState<string>('');
 
   useEffect(() => {
     let mounted = true;
     void dataSource.getNodes().then((loaded) => {
       if (mounted) setNodes(loaded);
     });
+
+    // Real-time WebSocket listener for GPS location updates
+    const wsUrl = getWsUrl();
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket(wsUrl);
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'NODE_STATUS' && msg.nodeId && msg.location) {
+            setNodes((prev) =>
+              prev.map((n) =>
+                n.id === msg.nodeId
+                  ? {
+                      ...n,
+                      label: msg.nodeLabel || n.label,
+                      location: {
+                        lat: msg.location.lat,
+                        lng: msg.location.lng,
+                        label: msg.location.label || n.location.label,
+                      },
+                    }
+                  : n
+              )
+            );
+            if (msg.location.label) {
+              setPlaceLabel(msg.location.label);
+            }
+          }
+        } catch {}
+      };
+    } catch {}
+
     return () => {
       mounted = false;
+      ws?.close();
     };
   }, []);
+
+  const fnNode = nodes.find((n) => n.id === 'FN-001');
+
+  // Reverse geocode real GPS coordinates
+  useEffect(() => {
+    if (!fnNode?.location?.lat || !fnNode?.location?.lng) return;
+    const { lat, lng } = fnNode.location;
+
+    let active = true;
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!active || !data?.address) return;
+        const addr = data.address;
+        const sub = addr.suburb || addr.neighbourhood || addr.residential || addr.town || addr.city_district || addr.city;
+        const city = addr.city || addr.town || addr.county || addr.state_district || 'Maharashtra';
+        const formatted = sub ? `${sub}, ${city}` : city;
+        if (formatted) setPlaceLabel(formatted);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [fnNode?.location?.lat, fnNode?.location?.lng]);
+
+  const displayLocation = placeLabel || getRealLocationLabel(fnNode?.location?.lat, fnNode?.location?.lng, fnNode?.location?.label);
 
   return (
     <div className="page">
@@ -71,11 +147,11 @@ export function DashboardPage() {
         >
           <KpiCard label="Network Nodes" value={`${nodes.length} Active`} subtext="5 Hazard Sensor Types" />
           <KpiCard label="Edge Processor" value="Online" subtext="Regional LAN Synced" state="normal" />
-          <KpiCard label="Telemetry Ingestion" value="1.0 Hz" subtext="Normalized SENSOR_READING" state="normal" />
-          <KpiCard label="Primary Demonstrator" value="FN-001" subtext="Wildfire IR & Smoke" state="warning" />
+          <KpiCard label="Telemetry Ingestion" value="60 FPS Stream" subtext="Normalized SENSOR_READING" state="normal" />
+          <KpiCard label="Primary Demonstrator" value="FN-001" subtext={displayLocation} state="warning" />
         </section>
 
-        {/* Featured Demonstration: Sanjay Gandhi National Park Wildfire Sentinel */}
+        {/* Featured Demonstration: Live Wildfire Sentinel */}
         <section
           style={{
             padding: 'var(--space-5)',
@@ -102,14 +178,15 @@ export function DashboardPage() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  Featured Demonstrator
+                  Live Hardware Node
                 </span>
                 <h2 style={{ fontSize: 'var(--font-size-lg)', color: 'var(--color-text-primary)' }}>
-                  Sanjay Gandhi National Park (FN-001)
+                  Fire Sentinel (FN-001) — {displayLocation}
                 </h2>
               </div>
               <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                Active wildfire sentinel: Borivali East canopy thermal curve & combustion gas telemetry (Mumbai Sector 1)
+                Active Wildfire Sentinel • Real-Time GPS: {fnNode?.location ? `${fnNode.location.lat.toFixed(6)}°N, ${fnNode.location.lng.toFixed(6)}°E` : '19.201149°N, 73.162719°E'}
+                {` • ${displayLocation}`}
               </p>
             </div>
             <Link
@@ -127,7 +204,7 @@ export function DashboardPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: 'var(--space-4)',
             }}
           >
@@ -139,6 +216,13 @@ export function DashboardPage() {
               warningAbove={48}
               criticalAbove={62}
               strokeColor="var(--color-node-fire)"
+            />
+            <LiveChart
+              nodeId="FN-001"
+              metricKey="humidity"
+              title="Relative Humidity"
+              unit="%"
+              strokeColor="hsl(190 90% 50%)"
             />
             <LiveChart
               nodeId="FN-001"

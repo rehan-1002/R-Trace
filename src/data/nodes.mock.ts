@@ -15,13 +15,13 @@ export const MOCK_NODES: NodeDefinition[] = [
   {
     id: 'FN-001',
     type: 'FIRE',
-    label: 'Sanjay Gandhi National Park (SGNP)',
+    label: 'Fire Sentinel Node (FN-001)',
     location: {
-      lat: 19.2288,
-      lng: 72.9182,
-      label: 'SGNP Borivali East Canopy',
+      lat: 19.2011,
+      lng: 73.1627,
+      label: 'Dombivli / Kalyan Region (Maharashtra)',
     },
-    description: 'Primary wildfire perimeter monitoring node with infrared flame detection, thermocouple array, and combustion gas telemetry.',
+    description: 'Live physical hardware node with DHT22 temperature/humidity, MQ-2 gas/smoke sensor, and NEO-6M GPS telemetry.',
     active: true,
   },
   {

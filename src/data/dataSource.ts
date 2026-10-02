@@ -49,12 +49,12 @@ class DataSourceManager implements DataSource {
     from?: string,
     to?: string
   ): Promise<DataPoint[]> {
-    if (isLiveMode() && from && to) {
+    if (isLiveMode()) {
       try {
         return await liveSource.getNodeHistory(nodeId, metric, from, to);
       } catch (err) {
-        console.warn('Failed to fetch live history, generating baseline series', err);
-        return generateMockHistory(nodeId, metric);
+        console.warn('Failed to fetch live history from server, starting empty', err);
+        return [];
       }
     }
     return generateMockHistory(nodeId, metric);

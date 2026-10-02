@@ -16,6 +16,7 @@ export interface ChartRenderOptions {
   criticalAbove?: number;
   minExpected?: number;
   maxExpected?: number;
+  windowSeconds?: number;
 }
 
 export function renderStreamingChart(
@@ -34,9 +35,9 @@ export function renderStreamingChart(
   if (width === 0 || height === 0) return;
 
   // Sync canvas internal resolution with physical display pixels
-  if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
+  if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
   }
 
   ctx.save();
@@ -45,7 +46,7 @@ export function renderStreamingChart(
   // Clear canvas
   ctx.clearRect(0, 0, width, height);
 
-  const paddingLeft = 40;
+  const paddingLeft = 42;
   const paddingRight = 16;
   const paddingTop = 16;
   const paddingBottom = 24;
@@ -75,10 +76,10 @@ export function renderStreamingChart(
     maxVal += 1;
   }
 
-  // Add 10% head/foot room
+  // Add 12% headroom
   const valRange = maxVal - minVal;
   const yMin = Math.max(0, minVal - valRange * 0.05);
-  const yMax = maxVal + valRange * 0.1;
+  const yMax = maxVal + valRange * 0.12;
   const totalYRange = yMax - yMin || 1;
 
   // Grid lines (3 horizontal intervals)
@@ -130,28 +131,55 @@ export function renderStreamingChart(
     return;
   }
 
-  // Compute (x, y) plot coordinates
-  const timeMin = points[0].timestamp;
-  const timeMax = points[points.length - 1].timestamp;
-  const timeRange = timeMax - timeMin || 1;
+  // 60 FPS continuous time sliding window anchored to Date.now()
+  const now = Date.now();
+  const windowMs = (options.windowSeconds ?? 120) * 1000;
+  const timeMax = now;
+  const timeMin = timeMax - windowMs;
+  const timeRange = windowMs;
 
-  const coords = points.map((p) => {
+  // Filter to visible window + 1 buffer point to the left for smooth exit
+  const visiblePoints = points.filter((p) => p.timestamp >= timeMin - 6000);
+  if (visiblePoints.length < 2) {
+    ctx.restore();
+    return;
+  }
+
+  const coords = visiblePoints.map((p) => {
     const x = paddingLeft + ((p.timestamp - timeMin) / timeRange) * plotWidth;
     const y = paddingTop + plotHeight - ((p.value - yMin) / totalYRange) * plotHeight;
     return { x, y };
   });
 
+  // Smoothly bridge latest point to current time
+  const lastPoint = visiblePoints[visiblePoints.length - 1];
+  const lastX = Math.min(paddingLeft + plotWidth, paddingLeft + ((now - timeMin) / timeRange) * plotWidth);
+  const lastY = paddingTop + plotHeight - ((lastPoint.value - yMin) / totalYRange) * plotHeight;
+  if (coords[coords.length - 1].x < lastX - 1) {
+    coords.push({ x: lastX, y: lastY });
+  }
+
   const strokeColor = options.strokeColor ?? 'hsl(196 80% 48%)';
 
-  // Area Fill
+  // Area Fill with smooth Catmull-Rom Bezier Spline
   const gradient = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + plotHeight);
-  gradient.addColorStop(0, options.fillColor ?? 'hsl(196 80% 48% / 0.2)');
-  gradient.addColorStop(1, 'hsl(196 80% 48% / 0.0)');
+  gradient.addColorStop(0, options.fillColor ?? strokeColor.replace(')', ' / 0.22)'));
+  gradient.addColorStop(1, strokeColor.replace(')', ' / 0.0)'));
 
   ctx.beginPath();
   ctx.moveTo(coords[0].x, coords[0].y);
-  for (let i = 1; i < coords.length; i++) {
-    ctx.lineTo(coords[i].x, coords[i].y);
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p0 = coords[i === 0 ? 0 : i - 1];
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+    const p3 = coords[i + 2] || p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
   }
   ctx.lineTo(coords[coords.length - 1].x, paddingTop + plotHeight);
   ctx.lineTo(coords[0].x, paddingTop + plotHeight);
@@ -159,18 +187,39 @@ export function renderStreamingChart(
   ctx.fillStyle = gradient;
   ctx.fill();
 
-  // Line Stroke
+  // Smooth Line Stroke
   ctx.beginPath();
   ctx.moveTo(coords[0].x, coords[0].y);
-  for (let i = 1; i < coords.length; i++) {
-    ctx.lineTo(coords[i].x, coords[i].y);
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p0 = coords[i === 0 ? 0 : i - 1];
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+    const p3 = coords[i + 2] || p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
   }
   ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   ctx.stroke();
 
-  // Latest point circle
+  // High-FPS pulsing radar halo on the latest live reading point
   const latestCoord = coords[coords.length - 1];
+  const pulse = (Math.sin(now / 220) + 1) / 2; // Smooth 0..1 sine wave oscillation
+
+  // Outer glow ring
+  ctx.beginPath();
+  ctx.arc(latestCoord.x, latestCoord.y, 4 + pulse * 5, 0, Math.PI * 2);
+  ctx.fillStyle = strokeColor.replace(')', ` / ${0.15 + pulse * 0.25})`);
+  ctx.fill();
+
+  // Solid center dot
   ctx.beginPath();
   ctx.arc(latestCoord.x, latestCoord.y, 4, 0, Math.PI * 2);
   ctx.fillStyle = strokeColor;

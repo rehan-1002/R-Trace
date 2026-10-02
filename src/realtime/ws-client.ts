@@ -12,6 +12,8 @@ import { useConnectionStore } from '@/stores/connection';
 import { useLiveStore } from '@/stores/live';
 import { getStoredToken } from '@/auth/authStorage';
 
+import { getWsUrl } from '@/utils/network';
+
 class RealtimeWebSocketClient {
   private ws: WebSocket | null = null;
   private reconnectStrategy = new ReconnectStrategy();
@@ -20,7 +22,7 @@ class RealtimeWebSocketClient {
   private url: string;
 
   constructor() {
-    this.url = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws';
+    this.url = getWsUrl();
   }
 
   public connect(): void {

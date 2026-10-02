@@ -37,6 +37,21 @@ export function LoginPage() {
     }
   }
 
+  async function handleDirectLogin(demoEmail: string, demoPass: string) {
+    setEmail(demoEmail);
+    setPassword(demoPass);
+    setError(null);
+    setSubmitting(true);
+    try {
+      await login({ email: demoEmail, password: demoPass });
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div className="login-page">
       <div className="login-panel" role="main">
@@ -103,53 +118,43 @@ export function LoginPage() {
           </button>
         </form>
 
-        {import.meta.env.VITE_DATA_MODE === 'mock' && (
-          <div className="login-demo-roles">
-            <span className="login-demo-title">Quick Demo Login:</span>
-            <div className="login-demo-grid">
-              <button
-                type="button"
-                className="login-btn-demo"
-                onClick={() => {
-                  setEmail('authority@rtrace.internal');
-                  setPassword('demo1234');
-                }}
-              >
-                Authority
-              </button>
-              <button
-                type="button"
-                className="login-btn-demo"
-                onClick={() => {
-                  setEmail('worker@rtrace.internal');
-                  setPassword('demo1234');
-                }}
-              >
-                Worker
-              </button>
-              <button
-                type="button"
-                className="login-btn-demo"
-                onClick={() => {
-                  setEmail('citizen@rtrace.internal');
-                  setPassword('demo1234');
-                }}
-              >
-                Citizen
-              </button>
-              <button
-                type="button"
-                className="login-btn-demo"
-                onClick={() => {
-                  setEmail('admin@rtrace.internal');
-                  setPassword('demo1234');
-                }}
-              >
-                Admin
-              </button>
-            </div>
+        <div className="login-demo-roles">
+          <span className="login-demo-title">Quick Demo Login:</span>
+          <div className="login-demo-grid">
+            <button
+              type="button"
+              className="login-btn-demo"
+              disabled={submitting}
+              onClick={() => { void handleDirectLogin('admin@rtrace.internal', 'demo1234'); }}
+            >
+              Admin
+            </button>
+            <button
+              type="button"
+              className="login-btn-demo"
+              disabled={submitting}
+              onClick={() => { void handleDirectLogin('authority@rtrace.internal', 'demo1234'); }}
+            >
+              Authority
+            </button>
+            <button
+              type="button"
+              className="login-btn-demo"
+              disabled={submitting}
+              onClick={() => { void handleDirectLogin('worker@rtrace.internal', 'demo1234'); }}
+            >
+              Worker
+            </button>
+            <button
+              type="button"
+              className="login-btn-demo"
+              disabled={submitting}
+              onClick={() => { void handleDirectLogin('citizen@rtrace.internal', 'demo1234'); }}
+            >
+              Citizen
+            </button>
           </div>
-        )}
+        </div>
 
         <div className="login-divider" aria-hidden="true" />
 

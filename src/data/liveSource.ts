@@ -5,6 +5,7 @@
  */
 
 import type { NodeDefinition, SensorReadingEvent, DataPoint } from '@/types';
+import { getApiUrl, getWsUrl } from '@/utils/network';
 
 type SensorCallback = (event: SensorReadingEvent) => void;
 
@@ -13,9 +14,7 @@ class LiveDataSource {
   private subscribers: Map<string, Set<SensorCallback>> = new Map();
 
   public async getNodes(): Promise<NodeDefinition[]> {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    if (!apiUrl) throw new Error('VITE_API_URL is not configured');
-
+    const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/api/nodes`);
     if (!res.ok) throw new Error(`Failed to fetch nodes: ${res.statusText}`);
     return res.json() as Promise<NodeDefinition[]>;
@@ -24,16 +23,22 @@ class LiveDataSource {
   public async getNodeHistory(
     nodeId: string,
     metric: string,
-    from: string,
-    to: string
+    from?: string,
+    to?: string
   ): Promise<DataPoint[]> {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    if (!apiUrl) throw new Error('VITE_API_URL is not configured');
+    const apiUrl = getApiUrl();
 
-    const params = new URLSearchParams({ metric, from, to });
-    const res = await fetch(`${apiUrl}/api/nodes/${nodeId}/history?${params.toString()}`);
-    if (!res.ok) throw new Error(`Failed to fetch history: ${res.statusText}`);
-    return res.json() as Promise<DataPoint[]>;
+    const params = new URLSearchParams({ metric, limit: '100' });
+    if (from) params.append('from', from);
+    if (to) params.append('to', to);
+
+    try {
+      const res = await fetch(`${apiUrl}/api/nodes/${nodeId}/history?${params.toString()}`);
+      if (!res.ok) return [];
+      return (await res.json()) as DataPoint[];
+    } catch {
+      return [];
+    }
   }
 
   public subscribeToNode(nodeId: string, callback: SensorCallback): () => void {
@@ -56,7 +61,7 @@ class LiveDataSource {
   }
 
   private connectWs() {
-    const wsUrl = import.meta.env.VITE_WS_URL;
+    const wsUrl = getWsUrl();
     if (!wsUrl || this.ws) return;
 
     try {

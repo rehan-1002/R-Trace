@@ -19,7 +19,9 @@ export function NodeIdentityBlock({
   health = 'normal',
   lastSeen,
 }: NodeIdentityBlockProps) {
-  const formattedCoords = `${node.location.lat.toFixed(4)}°N, ${Math.abs(node.location.lng).toFixed(4)}°W`;
+  const latHemi = node.location.lat >= 0 ? '°N' : '°S';
+  const lngHemi = node.location.lng >= 0 ? '°E' : '°W';
+  const formattedCoords = `${Math.abs(node.location.lat).toFixed(4)}${latHemi}, ${Math.abs(node.location.lng).toFixed(4)}${lngHemi}`;
 
   return (
     <div className="node-identity">

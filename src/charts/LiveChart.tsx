@@ -9,6 +9,7 @@ import { useEffect, useRef } from 'react';
 import { useMetricBuffer } from '@/hooks/useMetricBuffer';
 import { useLiveStore } from '@/stores/live';
 import { dataSource } from '@/data/dataSource';
+import type { DataPoint } from '@/types';
 import { renderStreamingChart } from './chartRenderer';
 import './LiveChart.css';
 
@@ -65,42 +66,36 @@ export function LiveChart({
     };
   }, [nodeId, metricKey]);
 
+  const pointsRef = useRef<DataPoint[]>(points);
+  pointsRef.current = points;
+
+  // 60 FPS hardware-accelerated continuous smooth streaming render loop
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    let animId: number;
 
-    renderStreamingChart(canvas, points, {
-      yLabel: title,
-      unit,
-      warningAbove,
-      criticalAbove,
-      minExpected,
-      maxExpected,
-      strokeColor,
-    });
-  }, [points, title, unit, warningAbove, criticalAbove, minExpected, maxExpected, strokeColor]);
+    const renderLoop = () => {
+      const canvas = canvasRef.current;
+      if (canvas && pointsRef.current.length > 0) {
+        renderStreamingChart(canvas, pointsRef.current, {
+          yLabel: title,
+          unit,
+          warningAbove,
+          criticalAbove,
+          minExpected,
+          maxExpected,
+          strokeColor,
+          windowSeconds,
+        });
+      }
+      animId = requestAnimationFrame(renderLoop);
+    };
 
-  // Handle container resizing
-  useEffect(() => {
-    const container = containerRef.current;
-    const canvas = canvasRef.current;
-    if (!container || !canvas || typeof ResizeObserver === 'undefined') return;
+    animId = requestAnimationFrame(renderLoop);
 
-    const observer = new ResizeObserver(() => {
-      renderStreamingChart(canvas, points, {
-        yLabel: title,
-        unit,
-        warningAbove,
-        criticalAbove,
-        minExpected,
-        maxExpected,
-        strokeColor,
-      });
-    });
-
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [points, title, unit, warningAbove, criticalAbove, minExpected, maxExpected, strokeColor]);
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [title, unit, warningAbove, criticalAbove, minExpected, maxExpected, strokeColor, windowSeconds]);
 
   return (
     <div className="live-chart">
