@@ -52,7 +52,7 @@ export function CameraFeedBlock({ nodeId, nodeType = 'FIRE' }: CameraFeedBlockPr
     };
 
     void checkStatus();
-    const interval = setInterval(checkStatus, 2500);
+    const interval = setInterval(checkStatus, 800);
 
     return () => {
       mounted = false;

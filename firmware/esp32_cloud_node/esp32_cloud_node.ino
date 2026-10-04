@@ -395,6 +395,14 @@ bool sendMetric(WiFiClientSecure& client, const char* metric, float value, const
 
   int httpCode = http.POST(json);
   bool success = (httpCode == 200 || httpCode == 201);
+  if (success) {
+    String resp = http.getString();
+    if (resp.indexOf("cameraFire\":true") >= 0 || resp.indexOf("fireAlert\":true") >= 0) {
+      cameraAlertActive = true;
+      cameraAlertExpiry = millis() + 8000;
+      activeAlertSource = "OPTICAL CAM AI";
+    }
+  }
   http.end();
   return success;
 }
@@ -476,11 +484,11 @@ void loop() {
   if (Serial.available() > 0) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
-    if (cmd.startsWith("FIRE_ALERT") || cmd.indexOf("ALERT:CAMERA") >= 0) {
+    if (cmd.startsWith("FIRE_ALERT") || cmd.indexOf("ALERT") >= 0 || cmd.indexOf("CAMERA") >= 0) {
       cameraAlertActive = true;
-      cameraAlertExpiry = millis() + 6000; // Hold alert for 6 seconds
+      cameraAlertExpiry = millis() + 8000; // Hold alert for 8 seconds
       activeAlertSource = "OPTICAL CAM AI";
-      Serial.println("🚨 [ESP32 EMERGENCY] Triggered by Laptop Camera Computer Vision!");
+      Serial.println("🚨 [ESP32 EMERGENCY] Triggered by Optical Camera AI!");
     } else if (cmd.indexOf("CLEAR") >= 0) {
       cameraAlertActive = false;
     }
@@ -564,6 +572,19 @@ void loop() {
   }
 
   // 4. Update OLED Display
+  static bool prevFireActive = false;
+  if (isFireActive != prevFireActive) {
+    prevFireActive = isFireActive;
+    if (isFireActive) {
+      lastStrobeTime = millis();
+      alertStrobe = true;
+      renderEmergencyAlert(activeAlertSource, true);
+    } else {
+      oledClearScreen();
+      renderNormalDisplay(temp, hum, smokePpm, (WiFi.status() == WL_CONNECTED));
+    }
+  }
+
   if (isFireActive) {
     // Rapid attention-grabbing strobe every 350ms
     if (millis() - lastStrobeTime >= 350) {

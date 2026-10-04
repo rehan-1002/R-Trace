@@ -43,7 +43,8 @@ else:
 
 # Target Backend API Endpoints for automated fire alerts
 ALERT_ENDPOINTS = [
-    "http://localhost:3001/api/nodes/FN-001/telemetry",       # Local R-Trace SQLite backend
+    "http://127.0.0.1:3001/api/nodes/FN-001/telemetry",       # Local IPv4
+    "http://localhost:3001/api/nodes/FN-001/telemetry",       # Local Hostname
     "https://r-trace.onrender.com/api/nodes/FN-001/telemetry" # Cloud production backend
 ]
 
@@ -92,17 +93,29 @@ def detect_fire(frame):
     Detects fire / flame colors (intense orange, yellow, and red).
     Draws bounding boxes around suspected flames and returns flame area.
     """
-    # Convert BGR frame to HSV color space
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Fire color range in HSV (Hue 16-35: intense yellow to deep orange/red, higher saturation and value)
-    lower_fire = np.array([16, 85, 215], dtype=np.uint8)
-    upper_fire = np.array([35, 255, 255], dtype=np.uint8)
+    # Multi-band fire color detection:
+    # Band 1: Orange/Yellow core (Hue 12-38, Saturation 60-255, Value 170-255)
+    lower_yellow = np.array([12, 60, 170], dtype=np.uint8)
+    upper_yellow = np.array([38, 255, 255], dtype=np.uint8)
+    mask1 = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
-    # Create binary mask
-    mask = cv2.inRange(hsv, lower_fire, upper_fire)
+    # Band 2: Deep Red / Orange flame tips (Hue 0-12, Saturation 70-255, Value 170-255)
+    lower_red = np.array([0, 70, 170], dtype=np.uint8)
+    upper_red = np.array([12, 255, 255], dtype=np.uint8)
+    mask2 = cv2.inRange(hsv, lower_red, upper_red)
 
-    # Smooth mask with fast morphological operations
+    # Band 3: High-red wrap-around (Hue 170-180)
+    lower_red2 = np.array([170, 70, 170], dtype=np.uint8)
+    upper_red2 = np.array([180, 255, 255], dtype=np.uint8)
+    mask3 = cv2.inRange(hsv, lower_red2, upper_red2)
+
+    # Combined mask
+    mask = cv2.bitwise_or(mask1, mask2)
+    mask = cv2.bitwise_or(mask, mask3)
+
+    # Clean noise with morphological operations
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, FIRE_KERNEL)
     mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, FIRE_KERNEL)
 
@@ -113,13 +126,13 @@ def detect_fire(frame):
 
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        if area > 1200:  # Robust threshold to ignore room lamps and yellow background glints
+        if area > 180:  # Sensitive to lighters, candles, and phone screen flame videos
             fire_detected = True
             total_fire_area += area
             x, y, w, h = cv2.boundingRect(cnt)
             # Draw pulsing red bounding box around fire
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            cv2.putText(frame, "FLAME DETECTED", (x, y - 8),
+            cv2.putText(frame, f"FLAME DETECTED ({int(area)}px)", (x, y - 8),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
     return frame, fire_detected, total_fire_area
@@ -129,7 +142,7 @@ def dispatch_alert_async(payload):
     """Dispatches webhook alerts in the background so video capture never stutters."""
     for url in ALERT_ENDPOINTS:
         try:
-            requests.post(url, json=payload, timeout=1.2)
+            requests.post(url, json=payload, timeout=1.0)
             print(f"   [Alert Dispatched] Flame detected ({payload['value']:.0f}px) -> {url}")
         except Exception:
             pass
@@ -235,7 +248,7 @@ def capture_loop():
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
                 # Send Webhook Alert to Backends asynchronously
-                if time.time() - last_alert_time > 3:
+                if time.time() - last_alert_time > 1.5:
                     last_alert_time = time.time()
                     payload = {
                         "nodeId": "FN-001",

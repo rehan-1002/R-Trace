@@ -164,6 +164,7 @@ const updateNodeLocationStmt = db.prepare(`
 `);
 
 let lastGeocoded = { lat: 0, lng: 0, label: '' };
+let lastCameraFireTime = 0;
 
 async function fetchPlaceName(lat, lng) {
   if (Math.abs(lat - lastGeocoded.lat) < 0.005 && Math.abs(lng - lastGeocoded.lng) < 0.005 && lastGeocoded.label) {
@@ -324,11 +325,16 @@ app.post('/api/nodes/:nodeId/telemetry', (req, res) => {
   if (metric && typeof value === 'number') {
     // If optical computer vision camera spots fire, forward immediately to ESP32 OLED over USB
     if ((metric === 'camera_fire_alert' || metric === 'flame_detected') && value > 0) {
+      lastCameraFireTime = Date.now();
       if (activeSerialPort && activeSerialPort.isOpen) {
         try {
           activeSerialPort.write('FIRE_ALERT:CAMERA\n');
-          console.log('🚨 [USB Alert] Sent FIRE_ALERT:CAMERA to ESP32 OLED');
-        } catch (e) {}
+          console.log(`🚨 [USB Alert] Sent FIRE_ALERT:CAMERA to ESP32 OLED (Flame Area: ${value}px)`);
+        } catch (e) {
+          console.error('[USB Alert Error]', e.message);
+        }
+      } else {
+        console.log(`🔥 [Optical Flame Alert] Sentinel AI detected flame (${value}px)`);
       }
     }
 
@@ -403,7 +409,11 @@ app.post('/api/nodes/:nodeId/telemetry', (req, res) => {
     return res.status(400).json({ message: 'Invalid payload: numeric value or sensor fields (temperature, humidity, smoke) required' });
   }
 
-  res.status(201).json({ status: 'ingested', count: ingestedCount });
+  res.status(201).json({
+    status: 'ingested',
+    count: ingestedCount,
+    cameraFire: (Date.now() - lastCameraFireTime < 8000)
+  });
 });
 
 // POST /sensor — Direct compatibility with tutorial FIRE-01 / FN-001 format
@@ -560,6 +570,9 @@ function checkThresholdAlerts(reading) {
       severity = 'CRITICAL';
     } else if (reading.metric === 'smoke' && reading.value > 350) {
       alertMessage = `ELEVATED SMOKE on ${reading.nodeId}: Density reached ${reading.value} ppm!`;
+    } else if ((reading.metric === 'camera_fire_alert' || reading.metric === 'flame_detected') && reading.value > 0) {
+      alertMessage = `CRITICAL FLAME DETECTED on ${reading.nodeId}: Sentinel AI verified visual fire!`;
+      severity = 'CRITICAL';
     }
   } else if (reading.nodeType === 'FLOOD') {
     if (reading.metric === 'waterLevel' && reading.value > 2.5) {
@@ -653,6 +666,10 @@ async function checkAndConnectSerial() {
       path: espPort.path,
       baudRate: 115200,
       autoOpen: true,
+    });
+
+    activeSerialPort.on('open', () => {
+      console.log(`🔌 [USB Serial Connected] Linked to ESP32 Sentinel on ${espPort.path}`);
     });
 
     const parser = activeSerialPort.pipe(new ReadlineParser({ delimiter: '\n' }));
