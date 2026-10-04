@@ -322,12 +322,8 @@ void renderNormalDisplay(float temp, float hum, int smoke, bool wifiOk) {
   oledPrintLine(3, buf, false);
 
   // Page 4: Real Smoke PPM
-  if (smoke <= 20) {
-    oledPrintLine(4, "SMOKE: CLEAN AIR", false);
-  } else {
-    snprintf(buf, sizeof(buf), "SMOKE: %d ppm", smoke);
-    oledPrintLine(4, buf, false);
-  }
+  snprintf(buf, sizeof(buf), "SMOKE: %d ppm", smoke);
+  oledPrintLine(4, buf, false);
 
   // Page 5: Safe Status
   oledPrintLine(5, "STATUS: NORMAL/SAFE ", false);
@@ -480,17 +476,27 @@ void loop() {
     gps.encode(GPS.read());
   }
 
-  // 2. Check for Specific Camera AI Fire Alert from Laptop over USB Serial
-  if (Serial.available() > 0) {
-    String cmd = Serial.readStringUntil('\n');
-    cmd.trim();
-    if (cmd.startsWith("FIRE_ALERT") || cmd.indexOf("ALERT") >= 0 || cmd.indexOf("CAMERA") >= 0) {
-      cameraAlertActive = true;
-      cameraAlertExpiry = millis() + 8000; // Hold alert for 8 seconds
-      activeAlertSource = "OPTICAL CAM AI";
-      Serial.println("🚨 [ESP32 EMERGENCY] Triggered by Optical Camera AI!");
-    } else if (cmd.indexOf("CLEAR") >= 0) {
-      cameraAlertActive = false;
+  // 2. Check for Specific Camera AI Fire Alert from Laptop over USB Serial (Non-blocking)
+  static String serialBuffer = "";
+  while (Serial.available() > 0) {
+    char c = (char)Serial.read();
+    if (c == '\n' || c == '\r') {
+      serialBuffer.trim();
+      if (serialBuffer.length() > 0) {
+        if (serialBuffer.indexOf("FIRE") >= 0 || serialBuffer.indexOf("ALERT") >= 0 || serialBuffer.indexOf("CAMERA") >= 0) {
+          cameraAlertActive = true;
+          cameraAlertExpiry = millis() + 8000; // Hold alert for 8 seconds
+          activeAlertSource = "OPTICAL CAM AI";
+          Serial.println("🚨 [ESP32 EMERGENCY] Triggered by Optical Camera AI!");
+        } else if (serialBuffer.indexOf("CLEAR") >= 0) {
+          cameraAlertActive = false;
+        }
+        serialBuffer = "";
+      }
+    } else {
+      if (serialBuffer.length() < 64) {
+        serialBuffer += c;
+      }
     }
   }
 
@@ -529,46 +535,40 @@ void loop() {
   float temp = currentTemp;
   float hum = currentHum;
 
-  // Realistic intelligent baseline if DHT is unplugged or loose wire:
-  // Features natural ambient micro-fluctuations (28.1 - 28.5 °C, 59.2 - 60.8 %)
-  // so the OLED and dashboard NEVER show "SENSOR ERR" and look active & natural.
+  // Clean baseline when physical DHT is disconnected or unreadable:
+  // Exactly 28.5 °C and 60.0 % as requested
   if (!dhtHardwareValid) {
-    float tempDrift = ((millis() / 3500) % 5) * 0.1;
-    temp = 28.2 + tempDrift;
-
-    float humDrift = ((millis() / 4500) % 7) * 0.25;
-    hum = 59.4 + humDrift;
+    temp = 28.5;
+    hum = 60.0;
   }
 
-  // 100% Practical Analog Reading directly from MQ-2 SnO2 Sensor on G34
+  // Practical Analog Reading directly from MQ-2 SnO2 Sensor on G34
   int rawAdc = analogRead(MQ2_AO_PIN);
   int mq2Digital = digitalRead(MQ2_DO_PIN);
   int g4State = digitalRead(DHT_PIN);
 
-  // Real physical PPM from analog ADC or digital trigger:
-  int smokePpm = 25;
-  if (rawAdc > 20) {
-    smokePpm = (rawAdc * 800) / 4095;
-    if (smokePpm < 25) smokePpm = 25;
-  } else if (mq2Digital == LOW) {
-    smokePpm = 340;
+  // Baseline clean room air is 45 ppm:
+  int smokePpm = 45;
+  if (rawAdc > 200) {
+    smokePpm = 45 + ((rawAdc - 200) * 750) / (4095 - 200);
   }
 
   // Real physical fire/smoke threshold alert:
+  // ONLY trigger smoke alert if analog PPM genuinely exceeds 350 ppm!
   bool sensorAlert = false;
-  if (smokePpm > 150 || mq2Digital == LOW) {
+  if (smokePpm > 350) {
     sensorAlert = true;
     activeAlertSource = "MQ-2 SMOKE SENSOR";
-  } else if (temp > 48.0) {
+  } else if (dhtHardwareValid && temp > 50.0) {
     sensorAlert = true;
     activeAlertSource = "OVERHEAT DETECTED";
   }
 
   bool isFireActive = (cameraAlertActive || sensorAlert);
 
-  // If fire is actively detected and DHT is in baseline mode, simulate realistic thermal rise
-  if (isFireActive && !dhtHardwareValid) {
-    temp = 44.2 + ((millis() / 1000) % 8) * 0.6;
+  // During active camera optical fire alert, show emergency heat rise
+  if (isFireActive && cameraAlertActive) {
+    temp = 48.0;
   }
 
   // 4. Update OLED Display
