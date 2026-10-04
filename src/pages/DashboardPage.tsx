@@ -189,16 +189,35 @@ export function DashboardPage() {
                 {` • ${displayLocation}`}
               </p>
             </div>
-            <Link
-              to="/nodes/FN-001"
-              style={{
-                color: 'var(--color-accent)',
-                fontSize: 'var(--font-size-sm)',
-                textDecoration: 'none',
-              }}
-            >
-              Open Full Adaptive View →
-            </Link>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+              <Link
+                to="/nodes/FN-001"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--color-node-fire)',
+                  textDecoration: 'none',
+                  padding: '4px 8px',
+                  border: '1px solid rgba(255, 107, 74, 0.3)',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'rgba(255, 107, 74, 0.08)',
+                }}
+              >
+                📹 Live Camera Stream →
+              </Link>
+              <Link
+                to="/nodes/FN-001"
+                style={{
+                  color: 'var(--color-accent)',
+                  fontSize: 'var(--font-size-sm)',
+                  textDecoration: 'none',
+                }}
+              >
+                Open Full Adaptive View →
+              </Link>
+            </div>
           </div>
 
           <div

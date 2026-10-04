@@ -294,10 +294,14 @@ app.get('/api/nodes/:nodeId/history', (req, res) => {
 
   const rows = db.prepare(`
     SELECT timestamp, value
-    FROM readings
-    WHERE node_id = ? AND metric = ?
-    ORDER BY timestamp ASC
-    LIMIT ?
+    FROM (
+      SELECT id, timestamp, value
+      FROM readings
+      WHERE node_id = ? AND metric = ?
+      ORDER BY id DESC
+      LIMIT ?
+    )
+    ORDER BY id ASC
   `).all(nodeId, String(metric), Number(limit));
 
   const points = rows.map((row) => ({
@@ -318,6 +322,16 @@ app.post('/api/nodes/:nodeId/telemetry', (req, res) => {
 
   // 1. Single metric payload
   if (metric && typeof value === 'number') {
+    // If optical computer vision camera spots fire, forward immediately to ESP32 OLED over USB
+    if ((metric === 'camera_fire_alert' || metric === 'flame_detected') && value > 0) {
+      if (activeSerialPort && activeSerialPort.isOpen) {
+        try {
+          activeSerialPort.write('FIRE_ALERT:CAMERA\n');
+          console.log('🚨 [USB Alert] Sent FIRE_ALERT:CAMERA to ESP32 OLED');
+        } catch (e) {}
+      }
+    }
+
     ingestAndBroadcast({
       type: 'SENSOR_READING',
       nodeId,
@@ -648,6 +662,7 @@ async function checkAndConnectSerial() {
       if (!cleanLine.startsWith('{') || !cleanLine.endsWith('}')) return;
       try {
         const data = JSON.parse(cleanLine);
+        console.log(`📡 [ESP32 Telemetry]`, cleanLine);
         const targetNodeId = data.nodeId || data.node_id || 'FN-001';
         const targetNodeType = data.nodeType || data.hazard || 'FIRE';
 

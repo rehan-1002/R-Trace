@@ -18,6 +18,7 @@ import { LiveChart } from '@/charts/LiveChart';
 import { getNodeConfig } from './config';
 import { NodeIdentityBlock } from './NodeIdentityBlock';
 import { MetricBlock } from './MetricBlock';
+import { CameraFeedBlock } from './CameraFeedBlock';
 import './NodeViewContainer.css';
 
 interface NodeViewContainerProps {
@@ -140,6 +141,11 @@ export function NodeViewContainer({ nodeId }: NodeViewContainerProps) {
       <NodeIdentityBlock node={node} health="normal" />
 
       <div className="node-view__content">
+        {/* Optical Sentinel Surveillance Feed */}
+        {node.type === 'FIRE' && (
+          <CameraFeedBlock nodeId={node.id} nodeType={node.type} />
+        )}
+
         {/* Real-time Metric Telemetry Grid */}
         <section className="node-view__section" aria-labelledby="live-metrics-heading">
           <div className="node-view__section-header">
